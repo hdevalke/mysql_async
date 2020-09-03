@@ -344,6 +344,7 @@ impl Conn {
         self.inner.auth_plugin = match handshake.auth_plugin() {
             Some(AuthPlugin::MysqlNativePassword) => AuthPlugin::MysqlNativePassword,
             Some(AuthPlugin::CachingSha2Password) => AuthPlugin::CachingSha2Password,
+            Some(AuthPlugin::MysqlClearPassword) => AuthPlugin::MysqlClearPassword,
             Some(AuthPlugin::Other(ref name)) => {
                 let name = String::from_utf8_lossy(name).into();
                 return Err(DriverError::UnknownAuthPlugin { name }.into());
@@ -418,7 +419,7 @@ impl Conn {
         // see https://github.com/rust-lang/rust/issues/46415#issuecomment-528099782
         Box::pin(async move {
             match self.inner.auth_plugin {
-                AuthPlugin::MysqlNativePassword => {
+                AuthPlugin::MysqlNativePassword | AuthPlugin::MysqlClearPassword => {
                     self.continue_mysql_native_password_auth().await?;
                     Ok(())
                 }
